@@ -64,7 +64,7 @@ def update_content():
     # Try to get the state of the forge
     try:
         client = Client(network_urls[network])
-        res = client.get_account_info(forge_id)
+        res = client.get_account_info(forge_id, commitment="single")
     except Exception as e:
         logger.error("Failed to query Solana network for Forge state")
         logger.error(e)
@@ -134,6 +134,7 @@ def update_content():
     # Create the cover art
     try:
         logs = tx_res["result"]["meta"]["logMessages"]
+        logger.info(logs)
         found, data = logs_to_event_type(program_id, logs, ForgeEvent)
 
         if found and data.token_id <= state["last"]:
