@@ -1,7 +1,12 @@
 {
   "python.pythonPath": "env/bin/python",
   "editor.defaultFormatter": "ms-python.python",
-  "editor.formatOnSave": true,
   "python.formatting.provider": "black",
-  "editor.detectIndentation": false
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Args": [
+    "--ignore=E501",
+    "max-line-length = 160"
+  ]
 }

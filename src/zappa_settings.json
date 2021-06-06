@@ -4,13 +4,27 @@
     "aws_region": "us-east-1",
     "profile_name": "default",
     "project_name": "uniforge-content-state-manager",
-    "runtime": "python3.7",
+    "runtime": "python3.8",
     "use_precompiled_packages": true,
     "timeout_seconds": 900,
     "s3_bucket": "uniforge-content-state-manager",
-    "log_level": "DEBUG",
+    "log_level": "INFO",
     "environment_variables": {
       "API_STAGE": "dev"
+  }
+  },
+  "release": {
+    "app_function": "app.app",
+    "aws_region": "us-east-1",
+    "profile_name": "default",
+    "project_name": "uniforge-content-state-manager",
+    "runtime": "python3.8",
+    "use_precompiled_packages": true,
+    "timeout_seconds": 900,
+    "s3_bucket": "uniforge-content-state-manager",
+    "log_level": "ERROR",
+    "environment_variables": {
+      "API_STAGE": "release"
   }
   }
 }
