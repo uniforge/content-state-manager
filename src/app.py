@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from flask import Flask, request, abort
 from flask_cors import CORS
 from solana.rpc.api import Client
+import requests
 
 from onchain_program import Forge, ForgeEvent, logs_to_event_type, validate_tx
 from cover_generation import RAINBOW_COLORS, FOREGROUND_IMAGES, block_hash_to_cover
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
+request_id = 0
 network_urls = {
     "localhost": "http://localhost:8899",
     "devnet": "https://api.devnet.solana.com",
@@ -79,8 +81,37 @@ def update_content():
 
     # Try to get the transaction and block
     try:
-        tx_res = client.get_confirmed_transaction(tx_sign)
-        block_res = client.get_confirmed_block(tx_res["result"]["slot"])
+        # solana-py doesn't support the additional commitment parameters of the
+        # getConfirmedTransaction endpoint, make a custom request
+        data = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "method": "getConfirmedTransaction",
+                "params": [tx_sign, {"commitment": "singleGossip"}],
+            }
+        )
+        tx_res = requests.post(
+            network_urls[network],
+            headers={"Content-Type": "application/json"},
+            data=data,
+        ).json()
+        # tx_res = client.get_confirmed_transaction(tx_sign)
+
+        data = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "method": "getConfirmedBlock",
+                "params": [tx_res["result"]["slot"], {"commitment": "singleGossip"}],
+            }
+        )
+        block_res = requests.post(
+            network_urls[network],
+            headers={"Content-Type": "application/json"},
+            data=data,
+        ).json()
+        # block_res = client.get_confirmed_block(tx_res["result"]["slot"])
         block_hash = block_res["result"]["blockhash"]
     except Exception as e:
         logger.error("Failed to query Solana network for transaction and block")
