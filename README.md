@@ -10,3 +10,6 @@
 
 ## Setup and deployment
 Environment setup can be done with the standard `pip` toolset. Deployment is managed via Zappa.
+
+## Cover Art Generation
+Those interested in how the cover art is generated for Solsets should check out [this](https://github.com/uniforge/content-state-manager/blob/main/src/cover_generation.py) part of the code. Ultimately, the cover is generated using the hash of the block containing the transaction that forged the Solset.
