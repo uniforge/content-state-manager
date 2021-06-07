@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import os
@@ -8,6 +9,7 @@ from flask import Flask, request, abort
 from flask_cors import CORS
 from solana.rpc.api import Client
 import requests
+import base58
 
 from onchain_program import Forge, ForgeEvent, logs_to_event_type, validate_tx
 from cover_generation import RAINBOW_COLORS, FOREGROUND_IMAGES, block_hash_to_cover
@@ -47,14 +49,13 @@ def update_content():
         forge_id = params["forgeId"]
         tx_sign = params["txSign"]
         program_id = params["programId"]
-        print(tx_sign)
+        print(params)
         assert network in network_urls
 
         # Enqueue the request in case of failures
         res = sqs.send_message(
             QueueUrl=CSM_Q, MessageBody=request.data.decode(errors="ignore")
         )
-        print(res)
     except Exception as e:
         logger.error(request.data)
         logger.error("Bad input params")
@@ -143,7 +144,7 @@ def update_content():
             fn = "{}_{:09d}.png".format("cover", token_id)
             cover_local_fn = os.path.join("/tmp", fn)
             cover.save(cover_local_fn)
-            # We are using the actual token id from the network, no need to add one
+            # We are using the actual token id from the network, no need to add 1
             cover_key = os.path.join(network, forge_id, fn)
 
             res = s3.upload_file(
@@ -151,6 +152,36 @@ def update_content():
             )
             os.remove(cover_local_fn)
             logger.info("Saved cover {}".format(token_id))
+
+            # Update the metadata
+            logger.info("Updating metadata")
+            res = s3.get_object(
+                Bucket=VAULT,
+                Key=os.path.join(
+                    network, forge_id, "{}_{:09d}.json".format("metadata", token_id)
+                ),
+            )
+            metadata = json.loads(res["Body"].read())
+            metadata["id"] = token_id
+            metadata["tx"] = tx_sign
+            metadata["insertSHA256"] = base58.b58encode(
+                bytes.fromhex(metadata.pop("insertSHA256"))
+            ).decode()
+            metadata["coverSHA256"] = base58.b58encode(
+                hashlib.sha256(cover.tobytes()).digest()
+            ).decode()
+
+            # Save the metadata to public bucket
+            logger.info("Saving metadata to publick bucket")
+            res = s3.put_object(
+                ACL="public-read",
+                Bucket=PUBLIC,
+                Key=os.path.join(
+                    network, forge_id, "{}_{:09d}.json".format("metadata", token_id)
+                ),
+                Body=json.dumps(metadata),
+            )
+
         else:
             logger.error(
                 "Failed to find the event data in logs of valid transaction {}".format(
@@ -182,7 +213,7 @@ def update_content():
         # the hash on chain
         # Generation code starts with index i -> token index i + 1
         source_key = os.path.join(
-            network, forge_id, "{}_{:09d}.png".format("insert", i)
+            network, forge_id, "{}_{:09d}.png".format("insert", i + 1)
         )
         dest_key = os.path.join(
             network, forge_id, "{}_{:09d}.png".format("insert", i + 1)
