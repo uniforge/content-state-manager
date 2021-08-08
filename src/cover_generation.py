@@ -10,15 +10,35 @@ RAINBOW_COLORS = [
     "#008AD2",
     "#7E68B0",
 ]
+GOLDEN_COLORS = [
+    "#DAA520",
+    "#D4AF37",
+    "#E5C063",
+    "#EDD290",
+]
+# had to modify path with ./ for runnign locally
+# fg_images = {
+#     "./images/Anvil.png": 40,
+#     "./images/Hammer.png": 30,
+#     "./images/BchsmObj0.png": 20,
+#     "./images/sglasses3.png": 10,
+# }
+
+# had to modify path with ./ for runnign locally
 fg_images = {
-    "images/Anvil.png": 40,
-    "images/Hammer.png": 30,
-    "images/BchsmObj0.png": 20,
-    "images/sglasses3.png": 10,
+    "C:/Users/ograd/Projects/Uniforge/content-state-manager/src/images/Anvil.png": 40,
+    "C:/Users/ograd/Projects/Uniforge/content-state-manager/src/images/Hammer.png": 30,
+    "C:/Users/ograd/Projects/Uniforge/content-state-manager/src/images/BchsmObj0.png": 20,
+    "C:/Users/ograd/Projects/Uniforge/content-state-manager/src/images/sglasses3.png": 10,
 }
+
 
 FOREGROUND_IMAGES = [[Image.open(fn)] * n for fn, n in fg_images.items()]
 FOREGROUND_IMAGES = [img for img_list in FOREGROUND_IMAGES for img in img_list]
+# GOLDEN_IMAGE = Image.open("images/BchsmObj2.png")
+GOLDEN_IMAGE = Image.open(
+    "C:/Users/ograd/Projects/Uniforge/content-state-manager/src/images/BchsmObj2.png"
+)
 
 
 def _block_hash_to_bit_stream(block_hash):
@@ -92,6 +112,9 @@ def block_hash_to_cover(block_hash, colors, fg_images):
     block_colors = _block_hash_to_colors(block_hash, colors)
 
     # Convert hash to foreground object
-    fg_obj = fg_images[block_hash_int % len(fg_images)]
+    try:
+        fg_obj = fg_images[block_hash_int % len(fg_images)]
+    except:
+        fg_obj = fg_images  # for the golden ticket fg_images is just a single image option so len() cannot be called
 
     return _get_placeholder(fg_obj, block_colors)
