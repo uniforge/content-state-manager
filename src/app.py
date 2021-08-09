@@ -12,7 +12,13 @@ import requests
 import base58
 
 from onchain_program import Forge, ForgeEvent, logs_to_event_type, validate_tx
-from cover_generation import RAINBOW_COLORS, FOREGROUND_IMAGES, block_hash_to_cover
+from cover_generation import (
+    RAINBOW_COLORS,
+    FOREGROUND_IMAGES,
+    block_hash_to_cover,
+    GOLDEN_COLORS,
+    GOLDEN_IMAGE,
+)
 
 logger = logging.getLogger(__name__)
 
